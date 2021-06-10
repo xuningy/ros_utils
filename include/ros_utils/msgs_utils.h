@@ -18,24 +18,71 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <stdexcept>
 #include <vector>
 
+#include <Eigen/Core>
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
+
 
 namespace ros_utils {
 // converts various data types to ros msg types.
 namespace msgs {
 
 template <typename T>
-geometry_msgs::Point toPoint(const std::vector<T>& pos)
+geometry_msgs::Point toPoint(const std::vector<T>& vec)
 {
-  if (pos.size() != 3) throw std::invalid_argument("[ros_utils::msgs::toPoint] vector needs to be of length 3");
+  if (vec.size() != 3) throw std::invalid_argument("[ros_utils::msgs::toPoint] vector needs to be of length 3");
 
   geometry_msgs::Point point;
-  point.x = pos[0];
-  point.y = pos[1];
-  point.z = pos[2];
+  point.x = vec[0];
+  point.y = vec[1];
+  point.z = vec[2];
 
   return point;
+}
+
+inline geometry_msgs::Point toPoint(const Eigen::Vector3d& vec)
+{
+  geometry_msgs::Point point;
+  point.x = vec(0);
+  point.y = vec(1);
+  point.z = vec(2);
+
+  return point;
+}
+
+inline Eigen::Vector3d fromPointToEigen(const geometry_msgs::Point& point)
+{
+  Eigen::Vector3d vec(point.x, point.y, point.z);
+  return vec;
+}
+
+inline Eigen::Vector3d fromVectorToEigen(const geometry_msgs::Vector3& vec3)
+{
+  Eigen::Vector3d vec(vec3.x, vec3.y, vec3.z);
+  return vec;
+}
+
+inline std::vector<double> fromPointToVec(const geometry_msgs::Point& point)
+{
+  std::vector<double> vec;
+  vec.push_back(point.x);
+  vec.push_back(point.y);
+  vec.push_back(point.z);
+
+  return vec;
+}
+
+inline Eigen::Quaterniond fromQuatToEigenQuat(const geometry_msgs::Quaternion& quat_msg)
+{
+  return Eigen::Quaterniond(quat_msg.w, quat_msg.x, quat_msg.y, quat_msg.z);
+}
+
+inline Eigen::Vector3d fromQuatToEigenRPY(const geometry_msgs::Quaternion& quat_msg)
+{
+  Eigen::Quaternion quat_eigen = fromQuatToEigenQuat(quat_msg);
+  Eigen::Vector3d rpy = quat_eigen.toRotationMatrix().eulerAngles(0, 1, 2);
+
+  return rpy;
 }
 
 } // namespace msgs

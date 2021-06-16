@@ -31,7 +31,7 @@ struct State
   void print(std::string state = "", bool verbose = false)
   {
     if (verbose) {
-      if (!state.empty()) printf("%s:", state);
+      if (!state.empty()) printf("%s: ", state.c_str());
       printf("t: %.2f | pos: %.2f, %.2f, %.2f | vel: %.2f, %.2f, %.2f | acc: %.2f, %.2f, %.2f | jerk: %.2f, %.2f, %.2f | rpy:  %.2f, %.2f, %.2f | ang_vel:  %.2f, %.2f, %.2f\n",
       t,
       pos(0), pos(1), pos(2),
@@ -43,6 +43,7 @@ struct State
       ang_vel(0), ang_vel(1), ang_vel(2));
     }
     else {
+      if (!state.empty()) printf("%s: ", state.c_str());
       printf("t: %.2f | pos: %.2f, %.2f, %.2f | vel: %.2f, %.2f, %.2f | rpy:  %.2f, %.2f, %.2f\n",
       t,
       pos(0), pos(1), pos(2),

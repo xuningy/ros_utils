@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <vector>
 
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
 

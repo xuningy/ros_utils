@@ -1,3 +1,7 @@
 # ros_utils
-#### Author: Xuning Yang <xuning@cmu.edu>
-an utility package for ros interfaces
+#### Author: Xuning Yang
+
+an utility package for interfacing with ros:
+- Msg conversions
+- Trajectory visualization
+- Parameter utils

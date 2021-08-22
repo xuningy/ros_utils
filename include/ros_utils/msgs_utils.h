@@ -22,7 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <Eigen/Geometry>
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
-
+#include <nav_msgs/Odometry.h>
+#include <planning_representations/FlatState.h>
 
 namespace ros_utils {
 // converts various data types to ros msg types.
@@ -80,11 +81,55 @@ inline Eigen::Quaterniond fromQuatToEigenQuat(const geometry_msgs::Quaternion& q
 
 inline Eigen::Vector3d fromQuatToEigenRPY(const geometry_msgs::Quaternion& quat_msg)
 {
-  Eigen::Quaternion quat_eigen = fromQuatToEigenQuat(quat_msg);
+  Eigen::Quaterniond quat_eigen = fromQuatToEigenQuat(quat_msg);
   Eigen::Vector3d rpy = quat_eigen.toRotationMatrix().eulerAngles(0, 1, 2);
 
   return rpy;
 }
+
+inline planner::FlatState fromOdometryToState(const nav_msgs::Odometry& msg)
+{
+  planner::FlatState state;
+
+  state.t = msg.header.stamp.toSec();
+  state.pos = ros_utils::msgs::fromPointToEigen(msg.pose.pose.position);
+  state.vel = ros_utils::msgs::fromVectorToEigen(msg.twist.twist.linear);
+  state.acc = Eigen::Vector3d(0, 0, 0);
+  state.jerk = Eigen::Vector3d(0, 0, 0);
+  state.snap = Eigen::Vector3d(0, 0, 0);
+  Eigen::Vector3d rpy = ros_utils::msgs::fromQuatToEigenRPY(msg.pose.pose.orientation);
+  Eigen::Vector3d ang_vel = ros_utils::msgs::fromVectorToEigen(msg.twist.twist.angular);
+
+  state.yaw = rpy(2);
+  state.dyaw = ang_vel(2);
+
+  return state;
+}
+
+inline Eigen::Transform<double, 3, Eigen::Affine> fromOdometryToRotation(const nav_msgs::Odometry& msg)
+{
+  Eigen::Vector3d rpy = ros_utils::msgs::fromQuatToEigenRPY(msg.pose.pose.orientation);
+
+  Eigen::Transform<double, 3, Eigen::Affine> tsf;
+  tsf = Eigen::AngleAxisd(rpy(2),Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(rpy(1),Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(rpy(0),Eigen::Vector3d::UnitX());
+
+  return tsf;
+}
+
+inline Eigen::Transform<double, 3, Eigen::Affine> fromOdometryToTransform(const nav_msgs::Odometry& msg)
+{
+  Eigen::Vector3d rpy = ros_utils::msgs::fromQuatToEigenRPY(msg.pose.pose.orientation);
+
+  Eigen::Translation3d translation = Eigen::Translation3d(ros_utils::msgs::fromPointToEigen(msg.pose.pose.position));
+
+  Eigen::Transform<double, 3, Eigen::Affine> tsf;
+  tsf = translation * Eigen::AngleAxisd(rpy(2),Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(rpy(1),Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(rpy(0),Eigen::Vector3d::UnitX());
+
+  return tsf;
+}
+
+
+
 
 } // namespace msgs
 
